@@ -1,26 +1,45 @@
 import React, { useState } from 'react'
 import api from '../services/api'
 import { useNavigate, Link } from 'react-router-dom'
+import { addPendingRegistration, registerSync, isOnline } from '../utils/offlineDB'
 
 export default function Signup(){
   const [form, setForm] = useState({ name:'', email:'', password:'', role: 'user' })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [successMsg, setSuccessMsg] = useState('')
   const navigate = useNavigate();
 
   const submit = async (e) => {
     e.preventDefault();
     setError('')
+    setSuccessMsg('')
     if (!form.name || !form.email || form.password.length < 6) return setError('Please provide name, valid email and a password of at least 6 characters.')
     setLoading(true);
+    
     try{
       const res = await api.post('/auth/register', form);
       localStorage.setItem('token', res.data.token);
-      navigate('/');
+      setSuccessMsg('Account created successfully! Redirecting...')
+      setTimeout(() => navigate('/'), 1500);
     }catch(err){
       console.error('Signup error:', err?.response || err);
-      setError(err?.response?.data?.message || err.message || 'Sign up failed');
-    }finally{ setLoading(false) }
+      
+      if (!isOnline() || err.message === 'Network Error') {
+        try {
+          await addPendingRegistration(form);
+          await registerSync('sync-registrations');
+          setSuccessMsg('You are offline. Your registration has been queued and will be processed when you reconnect.');
+          setTimeout(() => navigate('/login'), 3000);
+        } catch (offlineErr) {
+          setError('Failed to queue registration. Please try again when online.');
+        }
+      } else {
+        setError(err?.response?.data?.message || err.message || 'Sign up failed');
+      }
+    }finally{ 
+      setLoading(false) 
+    }
   }
 
   return (
@@ -31,7 +50,8 @@ export default function Signup(){
         <div className="auth-sub">Join the community — report or help reunite missing people.</div>
 
         <form onSubmit={submit}>
-          {error && <div style={{ color:'var(--danger)', marginBottom:10 }}>{error}</div>}
+          {error && <div style={{ color:'var(--danger)', marginBottom:10, padding: '10px', backgroundColor: '#ffebee', borderRadius: '4px' }}>{error}</div>}
+          {successMsg && <div style={{ color:'var(--success)', marginBottom:10, padding: '10px', backgroundColor: '#e8f5e9', borderRadius: '4px' }}>{successMsg}</div>}
           <div className="field-row">
             <input placeholder="Full name" value={form.name} onChange={e=>setForm({...form, name:e.target.value})} required />
             <input placeholder="Email" type="email" value={form.email} onChange={e=>setForm({...form, email:e.target.value})} required />
@@ -61,3 +81,4 @@ export default function Signup(){
     </div>
   )
 }
+

@@ -142,7 +142,7 @@ export default function ReportFound(){
       // ----------------------------------------
       await api.post('/found', {
         ...form,
-        photos: uploadedPhotos   // URLs from Cloudinary
+        photos: uploadedPhotos   
       })
 
       alert('Found report submitted')

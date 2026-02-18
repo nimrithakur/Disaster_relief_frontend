@@ -18,7 +18,6 @@ export default function Donations(){
     if (!token) return setError('You must be logged in to pledge a donation.');
     try{
       setLoading(true)
-      // Validate amount for money donations to avoid server-side NaN errors
       const payload = { ...form }
       if (payload.type === 'money'){
         const n = parseFloat(String(payload.amount).replace(/,/g, ''))

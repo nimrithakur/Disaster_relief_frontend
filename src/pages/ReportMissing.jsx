@@ -131,7 +131,7 @@ export default function ReportMissing(){
       const payload = { 
         ...form, 
         lastSeenText: combinedLocation,
-        photos: uploadedUrls   // store Cloudinary URLs
+        photos: uploadedUrls   
       };
 
       await api.post('/missing', payload);

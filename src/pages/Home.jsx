@@ -142,28 +142,52 @@ export default function Home(){
               No missing reports currently. Great news! 🎉
             </p>
           ) : (
-            missing.slice(0, 5).map(m => (
-              <div key={m._id} style={{ padding: 12, marginBottom: 8, background: 'rgba(255,255,255,0.03)', borderRadius: 8, borderLeft: `3px solid ${m.status === 'found' ? 'var(--accent-success)' : 'var(--accent-secondary)'}` }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <strong style={{ fontSize: 16 }}>{m.name}</strong>
-                    <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 4 }}>
-                      Last seen: {m.lastSeenLocation?.text || 'Location unknown'}
+            <div style={{ maxHeight: '400px', overflowY: 'auto', paddingRight: 8 }}>
+              {missing.map(m => (
+                <div key={m._id} style={{ padding: 12, marginBottom: 8, background: 'rgba(255,255,255,0.03)', borderRadius: 8, borderLeft: `3px solid ${m.status === 'found' ? 'var(--accent-success)' : 'var(--accent-secondary)'}` }}>
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                    {m.photos && m.photos[0] && (
+                      <img 
+                        src={m.photos[0]} 
+                        alt={m.name}
+                        style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 8, flexShrink: 0 }}
+                      />
+                    )}
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                        <div>
+                          <strong style={{ fontSize: 16, display: 'block', marginBottom: 4 }}>{m.name}</strong>
+                          <div style={{ fontSize: 13, color: 'var(--text-muted)', display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                            {m.age && <span>Age: {m.age}</span>}
+                            {m.gender && <span>• {m.gender}</span>}
+                          </div>
+                        </div>
+                        <div style={{ 
+                          padding: '4px 12px', 
+                          borderRadius: 12, 
+                          fontSize: 12, 
+                          fontWeight: 600,
+                          background: m.status === 'found' ? 'var(--accent-success)' : 'var(--accent-secondary)',
+                          color: 'white',
+                          flexShrink: 0
+                        }}>
+                          {m.status.toUpperCase()}
+                        </div>
+                      </div>
+                      <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 6 }}>
+                        📍 {m.lastSeenLocation?.text || 'Location unknown'}
+                      </div>
+                      <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>
+                        Reported: {new Date(m.dateMissing || m.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                      </div>
+                      <Link to={`/missing/${m._id}`} style={{ fontSize: 12, marginTop: 6, display: 'inline-block', color: 'var(--accent-primary)', fontWeight: 500 }}>
+                        View Full Details →
+                      </Link>
                     </div>
                   </div>
-                  <div style={{ 
-                    padding: '4px 12px', 
-                    borderRadius: 12, 
-                    fontSize: 12, 
-                    fontWeight: 600,
-                    background: m.status === 'found' ? 'var(--accent-success)' : 'var(--accent-secondary)',
-                    color: 'white'
-                  }}>
-                    {m.status.toUpperCase()}
-                  </div>
                 </div>
-              </div>
-            ))
+              ))}
+            </div>
           )}
           <div style={{ marginTop: 16, textAlign: 'center' }}>
             <Link to="/missing">

@@ -15,12 +15,28 @@ export default function MissingList(){
     try{
       const params = {}
       if (opts.search !== undefined) params.q = opts.search
-      // prefer city then state when filtering
       if (opts.city) params.location = `${opts.city}, ${opts.state || ''}`
       else if (opts.state && opts.state !== 'India') params.location = opts.state
+      
+      console.log('Fetching missing persons with params:', params)
       const res = await api.get('/missing', { params })
+      console.log('Missing persons API response:', res.data)
+      console.log('Number of items:', res.data.length)
       setItems(res.data)
-    }catch(err){ console.error('Failed to load missing list', err) }
+    }catch(err){ 
+      console.error('Failed to load missing list', err)
+      console.error('Error details:', err.response?.data || err.message)
+      try {
+        const { getCachedData } = await import('../utils/offlineDB')
+        const cached = await getCachedData('missing-persons')
+        if (cached && cached.length > 0) {
+          console.log('Loading from cache:', cached.length, 'items')
+          setItems(cached)
+        }
+      } catch(cacheErr) {
+        console.log('No cached data available')
+      }
+    }
     finally{ setLoading(false) }
   }
 
@@ -50,6 +66,13 @@ export default function MissingList(){
       </div>
 
       {loading ? <div className="card">Loading...</div> : null}
+
+      {!loading && items.length === 0 && (
+        <div className="card" style={{ textAlign: 'center', padding: 40 }}>
+          <h3>No missing persons found</h3>
+          <p style={{ color: 'var(--text-muted)' }}>Try adjusting your search filters or check the browser console for errors.</p>
+        </div>
+      )}
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap:12 }}>
         {items.map(it => (
